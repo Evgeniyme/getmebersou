@@ -1,0 +1,16 @@
+#Get year and month for csv export file 
+$DateTime = Get-Date -f "dd-MM-yyyy" 
+#Set CSV file name 
+$File = "D:\filename"+" "+$DateTime+".txt" 
+#Path to OU with Groups
+$OUpath = "OU=OUNAME,OU=Groups,OU=ADMINS,DC=DOMAIN,DC=INTRANET" 
+$Groups = Get-ADGroup -SearchBase $OUpath -filter * | Select-Object DistinguishedName ,Name
+
+foreach ($group in $Groups) 
+{
+
+Get-ADGroupMember -Recursive -Identity $group.DistinguishedName `
+| ForEach {Get-ADUser -filter {samaccountname -eq $_.SamAccountName} -Properties displayName, title, department, office, manager } `
+| Sort-Object displayName | Format-Table $group.name, displayName, department,title, office, manager -AutoSize | Out-File -Width 4000 $File  -Append
+
+}
